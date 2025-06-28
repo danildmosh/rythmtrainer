@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythm Trainer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Rhythm Trainer</h1>
+    
+    <!-- This is where VexFlow will draw the notation -->
+    <div id="notation-container"></div>
+    
+    <div class="controls">
+        <button id="play-button">Play</button>
+        <button id="new-rhythm-button">New Rhythm</button>
+    </div>
+
+    <!-- Load the libraries from a CDN (Content Delivery Network) -->
+    <script src="https://unpkg.com/vexflow/build/vexflow-min.js"></script>
+    <script src="https://unpkg.com/tone"></script>
+    
+    <!-- Load your application logic -->
+    <script src="main.js"></script>
+</body>
+</html>
