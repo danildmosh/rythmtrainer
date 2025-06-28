@@ -1,13 +1,13 @@
-// main.js - Aligned with Official Tone.js Examples
+// main.js - Using Tone.Part, the correct scheduler for this task.
 
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. DEFINE YOUR RHYTHM DATA ---
     const rhythmExercise = [
-        { pitch: 'c/4', duration: 'q' },   // Quarter note
-        { pitch: 'c/4', duration: '8' },   // Eighth note
-        { pitch: 'c/4', duration: '8' },   // Eighth note
-        { pitch: 'b/4', duration: 'hr' }  // Half rest
+        { pitch: 'c/4', duration: 'q' },
+        { pitch: 'c/4', duration: '8' },
+        { pitch: 'c/4', duration: '8' },
+        { pitch: 'b/4', duration: 'hr' }
     ];
 
     // --- 2. SETUP VEXFLOW (VISUALS) ---
@@ -26,33 +26,44 @@ document.addEventListener('DOMContentLoaded', () => {
     voice.draw(context, stave);
     beams.forEach(beam => beam.setContext(context).draw());
 
-    // --- 3. SETUP TONE.JS (AUDIO) ---
-    const synth = new Tone.MembraneSynth().toDestination();
+    // --- 3. SETUP TONE.JS (AUDIO & SCHEDULING) ---
+
+    // Using a more melodic synth to make notes distinct
+    const synth = new Tone.Synth().toDestination();
+
+    // Convert our rhythm data into an array of [time, value] pairs for Tone.Part
+    let currentTime = 0;
+    const toneEvents = rhythmExercise.map(note => {
+        const event = [currentTime, note];
+        const durationInSeconds = Tone.Time(note.duration.replace('r', '') + 'n').toSeconds();
+        currentTime += durationInSeconds;
+        return event;
+    });
+
+    // Create the Tone.Part. This is the scheduler.
+    const part = new Tone.Part((time, note) => {
+        // This callback is executed by the transport at the correct time.
+        if (!note.duration.includes('r')) {
+            const noteDuration = note.duration.replace('r', '') + 'n';
+            // Use the 'time' argument for sample-accurate playback.
+            synth.triggerAttackRelease('C4', noteDuration, time);
+        }
+    }, toneEvents);
+    part.loop = false;
 
     // --- 4. ADD CONTROLS ---
     document.getElementById('play-button').addEventListener('click', async () => {
-        // We still need to start the AudioContext on a user gesture.
-        if (Tone.context.state !== 'running') {
-            await Tone.start();
+        // Ensure the audio context is running
+        await Tone.start();
+
+        // If the transport is already playing, stop it and rewind.
+        if (Tone.Transport.state === 'started') {
+            Tone.Transport.stop();
+        } else {
+            // Otherwise, rewind to the beginning and start the transport.
+            // The Part will play automatically because it's synced to the transport.
+            Tone.Transport.position = 0;
+            Tone.Transport.start();
         }
-
-        // --- NEW, SIMPLER, CORRECTED LOGIC ---
-
-        // 1. Get the current time from the AudioContext.
-        const now = Tone.now();
-        let currentTime = 0;
-
-        // 2. Loop through the notes and schedule them relative to 'now'.
-        rhythmExercise.forEach(note => {
-            if (!note.duration.includes('r')) {
-                // Schedule the note to play at 'now + currentTime'.
-                // The third argument of triggerAttackRelease is the absolute time to play.
-                synth.triggerAttackRelease('C2', '8n', now + currentTime);
-            }
-
-            // 3. Advance our time cursor for the next note.
-            const noteDurationInSeconds = Tone.Time(note.duration.replace('r', '') + 'n').toSeconds();
-            currentTime += noteDurationInSeconds;
-        });
     });
 });
