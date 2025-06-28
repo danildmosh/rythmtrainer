@@ -9,7 +9,6 @@
 <body>
     <h1>Rhythm Trainer</h1>
     
-    <!-- This is where VexFlow will draw the notation -->
     <div id="notation-container"></div>
     
     <div class="controls">
@@ -17,12 +16,12 @@
         <button id="new-rhythm-button">New Rhythm</button>
     </div>
 
-    <!-- Load the libraries from a CDN (Content Delivery Network) -->
-    <script src="https://unpkg.com/vexflow@1.2.93/releases/vexflow-min.js" defer></script>
-    <script src="https://unpkg.com/tone" defer></script>
-    
-    
-    <!-- Load your application logic -->
-    <script src="main.js" defer></script>
+    <!-- 
+      NOTICE THE CHANGES HERE:
+      1. We REMOVED the script tags for VexFlow and Tone.js.
+      2. We added type="module" to our main.js script tag. This is crucial.
+    -->
+    <script type="module" src="main.js"></script>
+
 </body>
 </html>

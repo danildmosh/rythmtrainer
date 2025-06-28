@@ -1,8 +1,15 @@
-// main.js - Using Tone.Part, the correct scheduler for this task.
+// main.js - Modern ES Module Version
 
+// 1. IMPORT THE LATEST LIBRARIES
+// The browser will automatically fetch these from the CDN.
+import { Flow } from 'https://unpkg.com/vexflow/build/cjs/vexflow.js';
+import * as Tone from 'https://unpkg.com/tone';
+
+// DOMContentLoaded is still a good practice, but often not needed with modules.
+// We'll keep it for robustness to ensure the #notation-container exists.
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- 1. DEFINE YOUR RHYTHM DATA ---
+    // --- DEFINE YOUR RHYTHM DATA ---
     const rhythmExercise = [
         { pitch: 'c/4', duration: 'q' },
         { pitch: 'c/4', duration: '8' },
@@ -10,28 +17,26 @@ document.addEventListener('DOMContentLoaded', () => {
         { pitch: 'b/4', duration: 'hr' }
     ];
 
-    // --- 2. SETUP VEXFLOW (VISUALS) ---
-    const VF = Vex.Flow;
+    // --- SETUP VEXFLOW (VISUALS) ---
+    // Note: We now use "Flow" directly, as imported.
     const notationContainer = document.getElementById('notation-container');
     notationContainer.innerHTML = '';
-    const renderer = new VF.Renderer(notationContainer, VF.Renderer.Backends.SVG);
+    const renderer = new Flow.Renderer(notationContainer, Flow.Renderer.Backends.SVG);
     renderer.resize(500, 150);
     const context = renderer.getContext();
-    const stave = new VF.Stave(10, 40, 480);
+    const stave = new Flow.Stave(10, 40, 480);
     stave.addClef('percussion').addTimeSignature('4/4').setContext(context).draw();
-    const vexNotes = rhythmExercise.map(note => new VF.StaveNote({ keys: [note.pitch], duration: note.duration }));
-    const beams = VF.Beam.generateBeams(vexNotes);
-    const voice = new VF.Voice({ num_beats: 4, beat_value: 4 }).addTickables(vexNotes);
-    new VF.Formatter().joinVoices([voice]).format([voice], 400);
+    const vexNotes = rhythmExercise.map(note => new Flow.StaveNote({ keys: [note.pitch], duration: note.duration }));
+    const beams = Flow.Beam.generateBeams(vexNotes);
+    const voice = new Flow.Voice({ num_beats: 4, beat_value: 4 }).addTickables(vexNotes);
+    new Flow.Formatter().joinVoices([voice]).format([voice], 400);
     voice.draw(context, stave);
     beams.forEach(beam => beam.setContext(context).draw());
 
-    // --- 3. SETUP TONE.JS (AUDIO & SCHEDULING) ---
-
-    // Using a more melodic synth to make notes distinct
+    // --- SETUP TONE.JS (AUDIO & SCHEDULING) ---
+    // Note: The Tone.js code remains almost identical because we imported it as "Tone".
     const synth = new Tone.Synth().toDestination();
 
-    // Convert our rhythm data into an array of [time, value] pairs for Tone.Part
     let currentTime = 0;
     const toneEvents = rhythmExercise.map(note => {
         const event = [currentTime, note];
@@ -40,28 +45,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return event;
     });
 
-    // Create the Tone.Part. This is the scheduler.
     const part = new Tone.Part((time, note) => {
-        // This callback is executed by the transport at the correct time.
         if (!note.duration.includes('r')) {
             const noteDuration = note.duration.replace('r', '') + 'n';
-            // Use the 'time' argument for sample-accurate playback.
             synth.triggerAttackRelease('C4', noteDuration, time);
         }
     }, toneEvents);
     part.loop = false;
 
-    // --- 4. ADD CONTROLS ---
+    // --- ADD CONTROLS ---
     document.getElementById('play-button').addEventListener('click', async () => {
-        // Ensure the audio context is running
         await Tone.start();
 
-        // If the transport is already playing, stop it and rewind.
         if (Tone.Transport.state === 'started') {
             Tone.Transport.stop();
         } else {
-            // Otherwise, rewind to the beginning and start the transport.
-            // The Part will play automatically because it's synced to the transport.
             Tone.Transport.position = 0;
             part.start(0);
             Tone.Transport.start();
