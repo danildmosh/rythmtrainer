@@ -1,0 +1,69 @@
+/* --- Global Styles & Typography --- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5; /* A light, soft grey background */
+    color: #333;
+    margin: 0;
+    
+    /* Use Flexbox to easily center content vertically and horizontally */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+}
+
+h1 {
+    color: #1c1e21;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+/* --- Notation Container --- */
+/* This is the box where VexFlow will draw the musical staff */
+#notation-container {
+    background-color: #ffffff;
+    border: 1px solid #dddfe2;
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* A subtle shadow for depth */
+    padding: 20px;
+    margin-bottom: 30px;
+    
+    /* VexFlow will draw an SVG inside this div. This makes sure it scales nicely. */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- Controls (Buttons) --- */
+.controls {
+    display: flex;
+    gap: 15px; /* Adds space between the buttons */
+}
+
+button {
+    /* Sizing and Spacing */
+    padding: 12px 28px;
+    font-size: 1rem;
+    font-weight: bold;
+
+    /* Appearance */
+    border: none;
+    border-radius: 6px;
+    color: white;
+    background-color: #007bff; /* A nice, friendly blue */
+    
+    /* Interactivity */
+    cursor: pointer; /* Changes the mouse to a hand icon on hover */
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease; /* Smooth transitions */
+}
+
+/* Style for when you hover over a button */
+button:hover {
+    background-color: #0056b3; /* A darker blue on hover */
+}
+
+/* A subtle effect for when you click a button */
+button:active {
+    transform: scale(0.98); /* Makes the button look like it's being pressed */
+    background-color: #004a99;
+}
