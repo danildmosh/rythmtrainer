@@ -1,13 +1,13 @@
-// main.js
+// main.js - Aligned with Official Tone.js Examples
 
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- 1. DEFINE YOUR RHYTHM DATA ---
     const rhythmExercise = [
-        { pitch: 'c/4', duration: 'q' },
-        { pitch: 'c/4', duration: '8' },
-        { pitch: 'c/4', duration: '8' },
-        { pitch: 'b/4', duration: 'hr' } // 'hr' is half rest for VexFlow
+        { pitch: 'c/4', duration: 'q' },   // Quarter note
+        { pitch: 'c/4', duration: '8' },   // Eighth note
+        { pitch: 'c/4', duration: '8' },   // Eighth note
+        { pitch: 'b/4', duration: 'hr' }  // Half rest
     ];
 
     // --- 2. SETUP VEXFLOW (VISUALS) ---
@@ -31,34 +31,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. ADD CONTROLS ---
     document.getElementById('play-button').addEventListener('click', async () => {
-        // Ensure AudioContext is running
+        // We still need to start the AudioContext on a user gesture.
         if (Tone.context.state !== 'running') {
             await Tone.start();
         }
 
-        // Check if the transport is already started, if so, stop it.
-        if (Tone.Transport.state === "started") {
-            Tone.Transport.stop();
-            Tone.Transport.cancel(0);
-            return; // Exit function, effectively making the button a toggle.
-        }
+        // --- NEW, SIMPLER, CORRECTED LOGIC ---
 
-        // Clear any previous events just in case
-        Tone.Transport.cancel(0);
-
-        // Schedule each note from our rhythm array.
+        // 1. Get the current time from the AudioContext.
+        const now = Tone.now();
         let currentTime = 0;
+
+        // 2. Loop through the notes and schedule them relative to 'now'.
         rhythmExercise.forEach(note => {
             if (!note.duration.includes('r')) {
-                // Schedule the trigger to happen at 'currentTime'
-                synth.triggerAttackRelease('C2', '8n', `+${currentTime}`);
+                // Schedule the note to play at 'now + currentTime'.
+                // The third argument of triggerAttackRelease is the absolute time to play.
+                synth.triggerAttackRelease('C2', '8n', now + currentTime);
             }
-            // Advance our time cursor for the next note
+
+            // 3. Advance our time cursor for the next note.
             const noteDurationInSeconds = Tone.Time(note.duration.replace('r', '') + 'n').toSeconds();
             currentTime += noteDurationInSeconds;
         });
-
-        // Start the transport
-        Tone.Transport.start();
     });
 });
