@@ -1,4 +1,4 @@
-// main.js
+// main.js - FINAL WORKING VERSION
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -10,58 +10,52 @@ document.addEventListener('DOMContentLoaded', () => {
         { pitch: 'b/4', duration: 'hr' }
     ];
 
-
     // --- 2. SETUP VEXFLOW (VISUALS) ---
     const VF = Vex.Flow;
     const notationContainer = document.getElementById('notation-container');
-    notationContainer.innerHTML = ''; // Clear previous notation
-
+    notationContainer.innerHTML = '';
     const renderer = new VF.Renderer(notationContainer, VF.Renderer.Backends.SVG);
     renderer.resize(500, 150);
     const context = renderer.getContext();
     const stave = new VF.Stave(10, 40, 480);
     stave.addClef('percussion').addTimeSignature('4/4').setContext(context).draw();
-
-    const vexNotes = rhythmExercise.map(note => new VF.StaveNote({
-        keys: [note.pitch],
-        duration: note.duration
-    }));
-
+    const vexNotes = rhythmExercise.map(note => new VF.StaveNote({ keys: [note.pitch], duration: note.duration }));
     const beams = VF.Beam.generateBeams(vexNotes);
     const voice = new VF.Voice({ num_beats: 4, beat_value: 4 }).addTickables(vexNotes);
     new VF.Formatter().joinVoices([voice]).format([voice], 400);
-
     voice.draw(context, stave);
     beams.forEach(beam => beam.setContext(context).draw());
-
 
     // --- 3. SETUP TONE.JS (AUDIO) ---
     const synth = new Tone.MembraneSynth().toDestination();
 
-    // Create a part to schedule the audio
-    const part = new Tone.Part((time, value) => {
-        // THE FIX IS HERE: We access value.note.duration
-        // `value` is the full object we passed in: { pitch: '...', duration: '...' }
-        if (!value.duration.includes('r')) { // Don't play rests
+    // *** THE FIX IS HERE ***
+    // We now create an array of [time, note] pairs. This is the most reliable format.
+    let currentTime = 0;
+    const toneEvents = rhythmExercise.map(note => {
+        const event = [currentTime, note]; // Create the [time, value] pair
+        const toneDuration = note.duration.replace('r', '') + 'n';
+        currentTime += Tone.Time(toneDuration).toSeconds();
+        return event;
+    });
+
+    // The callback now correctly receives the note object as the second argument.
+    const part = new Tone.Part((time, note) => {
+        if (!note.duration.includes('r')) {
             synth.triggerAttackRelease("C2", "8n", time);
         }
-    }, rhythmExercise); // We can pass the rhythm array directly!
+    }, toneEvents);
 
     part.loop = false;
 
-
     // --- 4. ADD CONTROLS ---
     document.getElementById('play-button').addEventListener('click', async () => {
-        // Make sure the audio context is running before starting the transport
         if (Tone.context.state !== 'running') {
             await Tone.start();
         }
-        
-        // Ensure transport starts from the beginning and part is scheduled
         Tone.Transport.stop();
         Tone.Transport.position = 0;
         part.start(0);
         Tone.Transport.start();
     });
-
 });
