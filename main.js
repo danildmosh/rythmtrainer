@@ -2,7 +2,7 @@
 
 // 1. IMPORT THE LATEST LIBRARIES
 // The browser will automatically fetch these from the CDN.
-import { Flow } from 'https://unpkg.com/vexflow/build/cjs/vexflow.js';
+import { Flow } from 'https://unpkg.com/vexflow/build/esm/vexflow.js';
 import * as Tone from 'https://unpkg.com/tone';
 
 // DOMContentLoaded is still a good practice, but often not needed with modules.
