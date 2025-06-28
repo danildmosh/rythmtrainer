@@ -1,4 +1,4 @@
-// main.js - FINAL WORKING VERSION
+// main.js - FINAL ROBUST VERSION
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -29,33 +29,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 3. SETUP TONE.JS (AUDIO) ---
     const synth = new Tone.MembraneSynth().toDestination();
 
-    // *** THE FIX IS HERE ***
-    // We now create an array of [time, note] pairs. This is the most reliable format.
-    let currentTime = 0;
-    const toneEvents = rhythmExercise.map(note => {
-        const event = [currentTime, note]; // Create the [time, value] pair
-        const toneDuration = note.duration.replace('r', '') + 'n';
-        currentTime += Tone.Time(toneDuration).toSeconds();
-        return event;
-    });
-
-    // The callback now correctly receives the note object as the second argument.
-    const part = new Tone.Part((time, note) => {
-        if (!note.duration.includes('r')) {
-            synth.triggerAttackRelease("C2", "8n", time);
-        }
-    }, toneEvents);
-
-    part.loop = false;
-
     // --- 4. ADD CONTROLS ---
     document.getElementById('play-button').addEventListener('click', async () => {
+        // Ensure AudioContext is running
         if (Tone.context.state !== 'running') {
             await Tone.start();
         }
+
+        // --- THE FIX IS HERE ---
+        // We will now build the schedule directly on the transport each time 'play' is clicked.
+
+        // 1. Stop the transport and clear any previous events.
         Tone.Transport.stop();
-        Tone.Transport.position = 0;
-        part.start(0);
+        Tone.Transport.cancel(0); // Clear all scheduled events after time 0.
+
+        // 2. Schedule each note from our rhythm array.
+        let currentTime = 0;
+        rhythmExercise.forEach(note => {
+            // Schedule the trigger to happen at 'currentTime' on the transport timeline
+            if (!note.duration.includes('r')) {
+                synth.triggerAttackRelease('C2', '8n', currentTime);
+            }
+
+            // 3. Advance our time cursor for the next note
+            const noteDurationInSeconds = Tone.Time(note.duration.replace('r', '') + 'n').toSeconds();
+            currentTime += noteDurationInSeconds;
+        });
+        
+        // 4. Start the transport to play our newly created schedule.
         Tone.Transport.start();
     });
 });
