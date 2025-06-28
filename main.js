@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Otherwise, rewind to the beginning and start the transport.
             // The Part will play automatically because it's synced to the transport.
             Tone.Transport.position = 0;
+            part.start(0);
             Tone.Transport.start();
         }
     });
