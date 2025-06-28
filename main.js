@@ -1,4 +1,4 @@
-// main.js - CANONICAL AND ROBUST VERSION
+// main.js
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { pitch: 'c/4', duration: 'q' },
         { pitch: 'c/4', duration: '8' },
         { pitch: 'c/4', duration: '8' },
-        { pitch: 'b/4', duration: 'hr' }
+        { pitch: 'b/4', duration: 'hr' } // 'hr' is half rest for VexFlow
     ];
 
     // --- 2. SETUP VEXFLOW (VISUALS) ---
@@ -36,31 +36,29 @@ document.addEventListener('DOMContentLoaded', () => {
             await Tone.start();
         }
 
-        // --- THE DEFINITIVE FIX IS HERE ---
-        // We use Tone.Transport.scheduleOnce() for each note.
+        // Check if the transport is already started, if so, stop it.
+        if (Tone.Transport.state === "started") {
+            Tone.Transport.stop();
+            Tone.Transport.cancel(0);
+            return; // Exit function, effectively making the button a toggle.
+        }
 
-        // 1. Stop transport and clear all previously scheduled events.
-        Tone.Transport.stop();
+        // Clear any previous events just in case
         Tone.Transport.cancel(0);
 
-        // 2. Iterate through our rhythm and schedule each note individually.
+        // Schedule each note from our rhythm array.
         let currentTime = 0;
         rhythmExercise.forEach(note => {
-            // scheduleOnce() is the key. It tells the transport: "At 'currentTime', run this callback".
-            Tone.Transport.scheduleOnce((time) => {
-                // This callback provides the sample-accurate time for the event.
-                if (!note.duration.includes('r')) {
-                    // We use 'time' to ensure the synth triggers at the exact right moment.
-                    synth.triggerAttackRelease('C2', '8n', time);
-                }
-            }, currentTime); // The time on the transport to schedule the event.
-
-            // 3. Advance our time cursor for the next note.
+            if (!note.duration.includes('r')) {
+                // Schedule the trigger to happen at 'currentTime'
+                synth.triggerAttackRelease('C2', '8n', `+${currentTime}`);
+            }
+            // Advance our time cursor for the next note
             const noteDurationInSeconds = Tone.Time(note.duration.replace('r', '') + 'n').toSeconds();
             currentTime += noteDurationInSeconds;
         });
-        
-        // 4. Start the transport. It will now play our perfectly scheduled sequence.
+
+        // Start the transport
         Tone.Transport.start();
     });
 });
