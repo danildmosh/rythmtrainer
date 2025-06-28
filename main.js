@@ -1,4 +1,4 @@
-// main.js - FINAL ROBUST VERSION
+// main.js - CANONICAL AND ROBUST VERSION
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -36,27 +36,31 @@ document.addEventListener('DOMContentLoaded', () => {
             await Tone.start();
         }
 
-        // --- THE FIX IS HERE ---
-        // We will now build the schedule directly on the transport each time 'play' is clicked.
+        // --- THE DEFINITIVE FIX IS HERE ---
+        // We use Tone.Transport.scheduleOnce() for each note.
 
-        // 1. Stop the transport and clear any previous events.
+        // 1. Stop transport and clear all previously scheduled events.
         Tone.Transport.stop();
-        Tone.Transport.cancel(0); // Clear all scheduled events after time 0.
+        Tone.Transport.cancel(0);
 
-        // 2. Schedule each note from our rhythm array.
+        // 2. Iterate through our rhythm and schedule each note individually.
         let currentTime = 0;
         rhythmExercise.forEach(note => {
-            // Schedule the trigger to happen at 'currentTime' on the transport timeline
-            if (!note.duration.includes('r')) {
-                synth.triggerAttackRelease('C2', '8n', currentTime);
-            }
+            // scheduleOnce() is the key. It tells the transport: "At 'currentTime', run this callback".
+            Tone.Transport.scheduleOnce((time) => {
+                // This callback provides the sample-accurate time for the event.
+                if (!note.duration.includes('r')) {
+                    // We use 'time' to ensure the synth triggers at the exact right moment.
+                    synth.triggerAttackRelease('C2', '8n', time);
+                }
+            }, currentTime); // The time on the transport to schedule the event.
 
-            // 3. Advance our time cursor for the next note
+            // 3. Advance our time cursor for the next note.
             const noteDurationInSeconds = Tone.Time(note.duration.replace('r', '') + 'n').toSeconds();
             currentTime += noteDurationInSeconds;
         });
         
-        // 4. Start the transport to play our newly created schedule.
+        // 4. Start the transport. It will now play our perfectly scheduled sequence.
         Tone.Transport.start();
     });
 });
