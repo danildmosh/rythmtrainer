@@ -17,11 +17,13 @@
     </div>
 
     <!-- 
-      NOTICE THE CHANGES HERE:
-      1. We REMOVED the script tags for VexFlow and Tone.js.
-      2. We added type="module" to our main.js script tag. This is crucial.
+      LOADING SCRIPTS ACCORDING TO THE VEXFLOW 4.x DOCUMENTATION
     -->
-    <script type="module" src="main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+    <script src="https://unpkg.com/tone"></script>
+    
+    <!-- We use 'defer' on our script to make sure it runs after they are loaded -->
+    <script src="main.js" defer></script>
 
 </body>
 </html>
